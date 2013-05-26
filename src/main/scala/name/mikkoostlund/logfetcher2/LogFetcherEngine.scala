@@ -27,7 +27,7 @@ trait LogsReceiver {
   protected def stopReceiving()
 }
 
-trait LogFetcherEngine {
+trait LinesExtractor {
   def run(logs: Traversable[Log], startCriterion: Line => Boolean, stopCriterion: Line => Boolean, logsReceiver: LogsReceiver) = {
 
     validateParams(logs, startCriterion, stopCriterion, logsReceiver)
@@ -51,4 +51,4 @@ trait LogFetcherEngine {
   }
 }
 
-object LogFetcherEngine extends LogFetcherEngine
+object LinesExtractor extends LinesExtractor

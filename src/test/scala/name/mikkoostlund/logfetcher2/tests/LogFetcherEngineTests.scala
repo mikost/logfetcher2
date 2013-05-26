@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat
 import org.scalatest.FunSpec
 import org.scalamock.scalatest.proxy.MockFactory
 
-import name.mikkoostlund.logfetcher2.LogFetcherEngine
+import name.mikkoostlund.logfetcher2.LinesExtractor
 import name.mikkoostlund.logfetcher2.Log
 import name.mikkoostlund.logfetcher2.Line
 import name.mikkoostlund.logfetcher2.Lines
@@ -60,7 +60,7 @@ object LineStub {
    val NO_TIME = -1
 }
 
-class LogFetcherEngineTest extends FunSpec with MockFactory {
+class LinesExtractorTest extends FunSpec with MockFactory {
 
   trait Fixture {
     import LineStub.NO_TIME
@@ -97,11 +97,11 @@ class LogFetcherEngineTest extends FunSpec with MockFactory {
     }
   }
 
-  describe("A LogFetcherEngine") {
+  describe("A LinesExtractor") {
     it("should throw NullPointerException if supplied called with null 'logs' argument") {
       new Fixture {
         intercept[NullPointerException] {
-          LogFetcherEngine.run(null, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), logsReceiver)
+          LinesExtractor.run(null, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), logsReceiver)
         }
       }
     }
@@ -109,7 +109,7 @@ class LogFetcherEngineTest extends FunSpec with MockFactory {
     it("should throw NullPointerException if supplied called with null 'startCriterion' argument") {
       new Fixture {
         intercept[NullPointerException] {
-          LogFetcherEngine.run(logs, null, stopCriterion = afterCrit(new Date(7)), logsReceiver)
+          LinesExtractor.run(logs, null, stopCriterion = afterCrit(new Date(7)), logsReceiver)
         }
       }
     }
@@ -117,7 +117,7 @@ class LogFetcherEngineTest extends FunSpec with MockFactory {
     it("should throw NullPointerException if supplied called with null 'stopCriterion' argument") {
       new Fixture {
         intercept[NullPointerException] {
-          LogFetcherEngine.run(logs, startCriterion = onOrAfterCrit(new Date(3)), null, logsReceiver)
+          LinesExtractor.run(logs, startCriterion = onOrAfterCrit(new Date(3)), null, logsReceiver)
         }
       }
     }
@@ -125,7 +125,7 @@ class LogFetcherEngineTest extends FunSpec with MockFactory {
     it("should throw NullPointerException if supplied called with null 'logsReceiver' argument") {
       new Fixture {
         intercept[NullPointerException] {
-          LogFetcherEngine.run(logs, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), null)
+          LinesExtractor.run(logs, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), null)
         }
       }
     }
@@ -138,12 +138,12 @@ class LogFetcherEngineTest extends FunSpec with MockFactory {
         setupExpectations(logsReceiver, log3, startLine = 3, stopLine = 9)
         setupExpectations(logsReceiver, log4, startLine = 5, stopLine = 7)
   
-        LogFetcherEngine.run(logs, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), logsReceiver)
+        LinesExtractor.run(logs, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), logsReceiver)
   
         for {
           log <- logs;
           openedLinesObj <- log.openedLinesObjs
-        } assert(openedLinesObj.closed, "log \""+ log.name +"\" not closed by LogFetcherEngine")
+        } assert(openedLinesObj.closed, "log \""+ log.name +"\" not closed by LinesExtractor")
       }
     }
   }
