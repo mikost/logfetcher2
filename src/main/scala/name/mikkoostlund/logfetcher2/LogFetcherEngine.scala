@@ -29,6 +29,9 @@ trait LogsReceiver {
 
 trait LogFetcherEngine {
   def run(logs: Traversable[Log], startCriterion: Line => Boolean, stopCriterion: Line => Boolean, logsReceiver: LogsReceiver) = {
+
+    validateParams(logs, startCriterion, stopCriterion, logsReceiver)
+
     for {
       log      <- logs;
       stream   <- managed(logsReceiver.startReceiving(log.name));
@@ -38,6 +41,13 @@ trait LogFetcherEngine {
       line     <- wantedLines } {
         stream.receiveLogLine(line.text)
     }
+  }
+
+  private[this] def validateParams(logs: Traversable[Log], startCriterion: Line => Boolean, stopCriterion: Line => Boolean, logsReceiver: LogsReceiver) {
+    if (logs == null) throw new NullPointerException("logs")
+    if (startCriterion == null) throw new NullPointerException("startCriterion")
+    if (stopCriterion == null) throw new NullPointerException("stopCriterion")
+    if (logsReceiver == null) throw new NullPointerException("logsReceiver")
   }
 }
 

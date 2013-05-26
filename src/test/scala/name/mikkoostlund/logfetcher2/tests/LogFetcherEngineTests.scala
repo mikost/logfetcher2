@@ -62,10 +62,27 @@ object LineStub {
 
 class LogFetcherEngineTest extends FunSpec with MockFactory {
 
-  trait Log1 {
+  trait Fixture {
+    import LineStub.NO_TIME
+
     val log1 = new LogStub("log1") {
-      val lineTimes = Seq(0,1,2,3,LineStub.NO_TIME,5,6,7,8,9)
+      val lineTimes = Seq(0,1,2,3,NO_TIME,5,6,7,8,9)
     }
+    val log2 = new LogStub("log2") {
+      val lineTimes = Seq(0,1,2,3,NO_TIME,5,6,7,NO_TIME,9)
+    }
+    val log3 = new LogStub("log3") {
+      val lineTimes = Seq(0,1,2,3,NO_TIME,5,6,7,NO_TIME,NO_TIME)
+    }
+    val log4 = new LogStub("log4") {
+      val lineTimes = Seq(NO_TIME,NO_TIME,NO_TIME,NO_TIME,NO_TIME,5,6,7,8,9)
+    }
+    val logs = log1 :: log2 :: log3 :: log4 :: Nil
+
+    def onOrAfterCrit(time: Date): Line => Boolean = line => line.time.isDefined && !line.time.get.before(time)
+    def afterCrit(time: Date): Line => Boolean = line => line.time.isDefined && line.time.get.after(time)
+  
+    val logsReceiver = mock[LogsReceiver]
   }
 
   def setupExpectations(logsReceiver: LogsReceiver with org.scalamock.proxy.Mock, log: LogStub, startLine: Int, stopLine: Int): Unit = {
@@ -81,36 +98,53 @@ class LogFetcherEngineTest extends FunSpec with MockFactory {
   }
 
   describe("A LogFetcherEngine") {
-    it("should extract the correct log lines from all supplied log files") {
-      import LineStub.NO_TIME
+    it("should throw NullPointerException if supplied called with null 'logs' argument") {
+      new Fixture {
+        intercept[NullPointerException] {
+          LogFetcherEngine.run(null, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), logsReceiver)
+        }
+      }
+    }
 
-      val log1 = new LogStub("log1") {
-        val lineTimes = Seq(0,1,2,3,NO_TIME,5,6,7,8,9)
+    it("should throw NullPointerException if supplied called with null 'startCriterion' argument") {
+      new Fixture {
+        intercept[NullPointerException] {
+          LogFetcherEngine.run(logs, null, stopCriterion = afterCrit(new Date(7)), logsReceiver)
+        }
       }
-      val log2 = new LogStub("log2") {
-        val lineTimes = Seq(0,1,2,3,NO_TIME,5,6,7,NO_TIME,9)
-      }
-      val log3 = new LogStub("log3") {
-        val lineTimes = Seq(0,1,2,3,NO_TIME,5,6,7,NO_TIME,NO_TIME)
-      }
-      val log4 = new LogStub("log4") {
-        val lineTimes = Seq(NO_TIME,NO_TIME,NO_TIME,NO_TIME,NO_TIME,5,6,7,8,9)
-      }
-      val logs = log1 :: log2 :: log3 :: log4 :: Nil
+    }
 
-      val startCriterion: Line => Boolean = line => line.time.isDefined && !line.time.get.before(new Date(3))
-      val stopCriterion:  Line => Boolean = line => line.time.isDefined && line.time.get.after(new Date(7))
-  
-      val logsReceiver = mock[LogsReceiver]
+    it("should throw NullPointerException if supplied called with null 'stopCriterion' argument") {
+      new Fixture {
+        intercept[NullPointerException] {
+          LogFetcherEngine.run(logs, startCriterion = onOrAfterCrit(new Date(3)), null, logsReceiver)
+        }
+      }
+    }
 
-      setupExpectations(logsReceiver, log1, startLine = 3, stopLine = 7)
-      setupExpectations(logsReceiver, log2, startLine = 3, stopLine = 8)
-      setupExpectations(logsReceiver, log3, startLine = 3, stopLine = 9)
-      setupExpectations(logsReceiver, log4, startLine = 5, stopLine = 7)
+    it("should throw NullPointerException if supplied called with null 'logsReceiver' argument") {
+      new Fixture {
+        intercept[NullPointerException] {
+          LogFetcherEngine.run(logs, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), null)
+        }
+      }
+    }
+
+    it("should extract the correct log lines from all supplied "+
+       "log files and close all allocated resources") {
+      new Fixture {
+        setupExpectations(logsReceiver, log1, startLine = 3, stopLine = 7)
+        setupExpectations(logsReceiver, log2, startLine = 3, stopLine = 8)
+        setupExpectations(logsReceiver, log3, startLine = 3, stopLine = 9)
+        setupExpectations(logsReceiver, log4, startLine = 5, stopLine = 7)
   
-      LogFetcherEngine.run(logs, startCriterion, stopCriterion, logsReceiver)
+        LogFetcherEngine.run(logs, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), logsReceiver)
   
-      assert(log1.openedLinesObjs.forall(_.closed))
+        for {
+          log <- logs;
+          openedLinesObj <- log.openedLinesObjs
+        } assert(openedLinesObj.closed, "log \""+ log.name +"\" not closed by LogFetcherEngine")
+      }
     }
   }
 }
