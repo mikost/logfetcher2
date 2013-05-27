@@ -36,8 +36,8 @@ trait LinesExtractor {
       log      <- logs;
       stream   <- managed(logsReceiver.startReceiving(log.name));
       allLines <- managed(log.open);
-      wantedLines0 = allLines.dropWhile { !startCriterion(_) }
-      wantedLines = wantedLines0.takeWhile { !stopCriterion(_) };
+      wantedLines = allLines.dropWhile { !startCriterion(_) }.
+                             takeWhile { !stopCriterion(_) };
       line     <- wantedLines } {
         stream.receiveLogLine(line.text)
     }

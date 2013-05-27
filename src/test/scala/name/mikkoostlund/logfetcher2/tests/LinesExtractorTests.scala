@@ -98,7 +98,7 @@ class LinesExtractorTest extends FunSpec with MockFactory {
   }
 
   describe("A LinesExtractor") {
-    it("should throw NullPointerException if supplied called with null 'logs' argument") {
+    it("should throw NullPointerException if called with null 'logs' argument") {
       new Fixture {
         intercept[NullPointerException] {
           LinesExtractor.run(null, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), logsReceiver)
@@ -106,7 +106,7 @@ class LinesExtractorTest extends FunSpec with MockFactory {
       }
     }
 
-    it("should throw NullPointerException if supplied called with null 'startCriterion' argument") {
+    it("should throw NullPointerException if called with null 'startCriterion' argument") {
       new Fixture {
         intercept[NullPointerException] {
           LinesExtractor.run(logs, null, stopCriterion = afterCrit(new Date(7)), logsReceiver)
@@ -114,7 +114,7 @@ class LinesExtractorTest extends FunSpec with MockFactory {
       }
     }
 
-    it("should throw NullPointerException if supplied called with null 'stopCriterion' argument") {
+    it("should throw NullPointerException if called with null 'stopCriterion' argument") {
       new Fixture {
         intercept[NullPointerException] {
           LinesExtractor.run(logs, startCriterion = onOrAfterCrit(new Date(3)), null, logsReceiver)
@@ -122,7 +122,7 @@ class LinesExtractorTest extends FunSpec with MockFactory {
       }
     }
 
-    it("should throw NullPointerException if supplied called with null 'logsReceiver' argument") {
+    it("should throw NullPointerException if called with null 'logsReceiver' argument") {
       new Fixture {
         intercept[NullPointerException] {
           LinesExtractor.run(logs, startCriterion = onOrAfterCrit(new Date(3)), stopCriterion = afterCrit(new Date(7)), null)
