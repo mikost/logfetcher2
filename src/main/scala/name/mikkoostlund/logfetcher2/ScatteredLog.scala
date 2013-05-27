@@ -37,9 +37,9 @@ abstract class ScatteredLog(override val name: String, timeStampParser: TimeStam
   }
 
   trait LogPart {
-    def open = new LineStream
+    def open = new LineStream {}
 
-    class LineStream extends Closeable {
+    trait LineStream extends Closeable {
       private[this] lazy 
       val reader: BufferedReader = createReader
 
